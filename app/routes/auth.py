@@ -65,6 +65,9 @@ async def login(
     request: Request,
     response: Response,
     form_data: OAuth2PasswordRequestForm = Depends(),
+    _=csrf_protected(),
+    x_csrf_token: Annotated[str | None, Header()] = None,
+    x_payload_id: Annotated[str | None, Header()] = None,
     db=Depends(get_db),
 ):
     # Validate user exists and password is correct
@@ -116,7 +119,12 @@ async def login(
 
 @router.post("/refresh", response_model=schemas.Token)
 async def refresh_token(
-    request: Request, response: Response, db=Depends(get_db)
+    request: Request,
+    response: Response, 
+    _=csrf_protected(),
+    x_csrf_token: Annotated[str | None, Header()] = None,
+    x_payload_id: Annotated[str | None, Header()] = None,
+    db=Depends(get_db)
 ):
     refresh_token = request.cookies.get("refresh_token")
     if not refresh_token:
@@ -321,6 +329,7 @@ async def me(current_user: models.User = Depends(get_current_user)):
     return {
         "email": current_user.email,
         "id": current_user.id,
+        "role": current_user.role
     }
 
 
